@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Tests d'arrachement colles</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f3;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b68;
+  --border: rgba(0,0,0,0.12);
+  --border-md: rgba(0,0,0,0.22);
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1c1c1c;
+    --bg-secondary: #252525;
+    --text-primary: #f0f0ee;
+    --text-secondary: #999994;
+    --border: rgba(255,255,255,0.1);
+    --border-md: rgba(255,255,255,0.2);
+  }
+}
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg-secondary); color: var(--text-primary); min-height: 100vh; padding: 2rem 1rem; }
+.dash { max-width: 900px; margin: 0 auto; }
+h1.title { font-size: 20px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+p.sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.5rem; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.kpi { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; }
+.kpi-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.kpi-val { font-size: 22px; font-weight: 500; color: var(--text-primary); }
+.kpi-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.section-title { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin: 1.5rem 0 10px; border-bottom: 0.5px solid var(--border); padding-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+@media (max-width: 600px) { .charts-row { grid-template-columns: 1fr; } }
+.chart-box { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+.chart-box h3, .chart-full h3 { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.chart-full { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; font-size: 12px; color: var(--text-secondary); }
+.legend span { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.filters { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+.filters select { font-size: 13px; padding: 6px 10px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: var(--bg-primary); color: var(--text-primary); cursor: pointer; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+thead th { padding: 8px 10px; text-align: left; color: var(--text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--border); white-space: nowrap; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+tbody td { padding: 7px 10px; border-bottom: 0.5px solid var(--border); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+tbody tr:last-child td { border-bottom: none; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-ok { background: #EAF3DE; color: #3B6D11; }
+.badge-cohesif { background: #EEEDFE; color: #3C3489; }
+.badge-adhesif { background: #FAEEDA; color: #854F0B; }
+.badge-mixte { background: #FAECE7; color: #993C1D; }
+.badge-nd { background: var(--bg-secondary); color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="dash">
+  <h1 class="title">Tests d'arrachement — Assemblages collés aluminium</h1>
+  <p class="sub">Brides alu emboîtées dans tubes alu · surfaces brutes ou peintes · dégraissage ou non</p>
+
+  <div class="kpis" id="kpis"></div>
+
+  <p class="section-title">Filtres</p>
+  <div class="filters">
+    <select id="filterColle"><option value="all">Toutes les colles</option></select>
+    <select id="filterSurface"><option value="all">Toutes surfaces</option><option value="Brute">Brute</option><option value="Peinte">Peinte</option></select>
+    <select id="filterDegraissage"><option value="all">Dégraissage : tous</option><option value="Dégraissé">Dégraissé</option><option value="Non-dégraissé">Non-dégraissé</option></select>
+  </div>
+
+  <p class="section-title">Résultats par condition</p>
+  <div class="charts-row">
+    <div class="chart-box">
+      <h3>Force moyenne par condition (N)</h3>
+      <div style="position:relative;height:280px;"><canvas id="chartBar" role="img" aria-label="Barres des forces moyennes par condition de collage"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Coefficient de variation C.V. (%)</h3>
+      <div style="position:relative;height:280px;"><canvas id="chartCV" role="img" aria-label="Coefficient de variation par condition"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-full">
+    <h3>Comparaison : Dégraissé vs Non-dégraissé · par colle</h3>
+    <div class="legend" id="legendCompare"></div>
+    <div style="position:relative;height:260px;"><canvas id="chartCompare" role="img" aria-label="Comparaison dégraissé vs non-dégraissé"></canvas></div>
+  </div>
+
+  <div class="chart-full">
+    <h3>Intervalles de confiance (95%) — survol pour détails</h3>
+    <div style="position:relative;height:200px;"><canvas id="chartIC" role="img" aria-label="Intervalles de confiance 95% des forces mesurées"></canvas></div>
+  </div>
+
+  <p class="section-title">Tableau récapitulatif</p>
+  <div class="chart-box">
+    <div class="table-wrap"><table id="mainTable"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<script>
+const RAW = [
+  {colle:"3M 8507NS",type:"Acrylique",degraissage:"Non-dégraissé",surface:"Brute",v:[1100,1100,1100],moy:1100,sigma:0,cv:0,delta:0,ic:"—",rupture:"Pas de rupture"},
+  {colle:"3M 8507NS",type:"Acrylique",degraissage:"Non-dégraissé",surface:"Peinte",v:[],moy:null,sigma:null,cv:null,delta:null,ic:"—",rupture:"—"},
+  {colle:"3M 8507NS",type:"Acrylique",degraissage:"Dégraissé",surface:"Brute",v:[1100,1100,1100],moy:1100,sigma:0,cv:0,delta:0,ic:"—",rupture:"Pas de rupture"},
+  {colle:"3M 8507NS",type:"Acrylique",degraissage:"Dégraissé",surface:"Peinte",v:[1100],moy:1100,sigma:null,cv:null,delta:null,ic:"—",rupture:"—"},
+  {colle:"3M DP8410NS",type:"Acrylique",degraissage:"Non-dégraissé",surface:"Brute",v:[],moy:null,sigma:null,cv:null,delta:null,ic:"—",rupture:"—"},
+  {colle:"3M DP8410NS",type:"Acrylique",degraissage:"Non-dégraissé",surface:"Peinte",v:[],moy:null,sigma:null,cv:null,delta:null,ic:"—",rupture:"—"},
+  {colle:"3M DP8410NS",type:"Acrylique",degraissage:"Dégraissé",surface:"Brute",v:[],moy:null,sigma:null,cv:null,delta:null,ic:"—",rupture:"—"},
+  {colle:"3M DP8410NS",type:"Acrylique",degraissage:"Dégraissé",surface:"Peinte",v:[],moy:null,sigma:null,cv:null,delta:null,ic:"—",rupture:"—"},
+  {colle:"SikaFast 555",type:"Acrylique",degraissage:"Non-dégraissé",surface:"Brute",v:[658.9,418.5,436.5],moy:504.6,sigma:133.9,cv:27,delta:240.4,ic:"504.6 ± 332.7",rupture:"Cohésif"},
+  {colle:"SikaFast 555",type:"Acrylique",degraissage:"Non-dégraissé",surface:"Peinte",v:[381.2,371.5,362.7],moy:371.8,sigma:9.3,cv:2,delta:18.5,ic:"371.8 ± 23",rupture:"Cohésif"},
+  {colle:"SikaFast 555",type:"Acrylique",degraissage:"Dégraissé",surface:"Brute",v:[],moy:null,sigma:null,cv:null,delta:null,ic:"—",rupture:"—"},
+  {colle:"SikaFast 555",type:"Acrylique",degraissage:"Dégraissé",surface:"Peinte",v:[],moy:null,sigma:null,cv:null,delta:null,ic:"—",rupture:"—"},
+  {colle:"3M 7260",type:"Époxy",degraissage:"Non-dégraissé",surface:"Brute",v:[1100,1100,1100],moy:1100,sigma:0,cv:0,delta:0,ic:"—",rupture:"Pas de rupture"},
+  {colle:"3M 7260",type:"Époxy",degraissage:"Non-dégraissé",surface:"Peinte",v:[863.3,914.7,899.3],moy:892.4,sigma:26.4,cv:3,delta:51.4,ic:"892.4 ± 65.5",rupture:"Adhésif"},
+  {colle:"3M 7260",type:"Époxy",degraissage:"Dégraissé",surface:"Brute",v:[1100,1100,1100],moy:1100,sigma:0,cv:0,delta:0,ic:"—",rupture:"Pas de rupture"},
+  {colle:"3M 7260",type:"Époxy",degraissage:"Dégraissé",surface:"Peinte",v:[1057.7,1067.8,998.4],moy:1041.3,sigma:37.5,cv:4,delta:69.4,ic:"1041.3 ± 93.1",rupture:"Adhésif"},
+  {colle:"3M DP420",type:"Époxy",degraissage:"Non-dégraissé",surface:"Brute",v:[1100,1100,1100],moy:1100,sigma:0,cv:0,delta:0,ic:"—",rupture:"Pas de rupture"},
+  {colle:"3M DP420",type:"Époxy",degraissage:"Non-dégraissé",surface:"Peinte",v:[246.9,254.5,231.8],moy:244.4,sigma:11.6,cv:5,delta:22.7,ic:"244.4 ± 28.7",rupture:"Mixte"},
+  {colle:"3M DP420",type:"Époxy",degraissage:"Dégraissé",surface:"Brute",v:[1100,1100,1100],moy:1100,sigma:0,cv:0,delta:0,ic:"—",rupture:"Pas de rupture"},
+  {colle:"3M DP420",type:"Époxy",degraissage:"Dégraissé",surface:"Peinte",v:[321.5,304.5,354.9],moy:327,sigma:25.6,cv:8,delta:50.4,ic:"327 ± 63.7",rupture:"Mixte"},
+];
+
+const COLORS = {
+  "3M 8507NS":"#378ADD","3M DP8410NS":"#1D9E75","SikaFast 555":"#7F77DD","3M 7260":"#D85A30","3M DP420":"#BA7517"
+};
+
+function getRuptureClass(r){
+  if(r==="Pas de rupture") return "badge-ok";
+  if(r==="Cohésif") return "badge-cohesif";
+  if(r==="Adhésif") return "badge-adhesif";
+  if(r==="Mixte") return "badge-mixte";
+  return "badge-nd";
+}
+
+function filtered(){
+  const c=document.getElementById('filterColle').value;
+  const s=document.getElementById('filterSurface').value;
+  const d=document.getElementById('filterDegraissage').value;
+  return RAW.filter(r=>(c==='all'||r.colle===c)&&(s==='all'||r.surface===s)&&(d==='all'||r.degraissage===d));
+}
+
+function buildKPIs(data){
+  const tested=data.filter(r=>r.moy!==null);
+  const completed=data.filter(r=>r.moy!==null&&r.v.length===3);
+  const noRupture=tested.filter(r=>r.rupture==="Pas de rupture").length;
+  const maxRow=tested.reduce((a,b)=>(b.moy>a.moy?b:a),{moy:0,colle:"—"});
+  const minRow=tested.filter(r=>r.moy>0&&r.moy<1100).reduce((a,b)=>(b.moy<a.moy?b:a),{moy:9999,colle:"—"});
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Conditions testées</div><div class="kpi-val">${tested.length} / ${RAW.length}</div><div class="kpi-sub">complètes : ${completed.length}</div></div>
+    <div class="kpi"><div class="kpi-label">Max force (N)</div><div class="kpi-val">${maxRow.moy===0?'—':maxRow.moy}</div><div class="kpi-sub">${maxRow.colle}</div></div>
+    <div class="kpi"><div class="kpi-label">Min force mesurée</div><div class="kpi-val">${minRow.moy===9999?'—':minRow.moy.toFixed(1)}</div><div class="kpi-sub">${minRow.colle} · ${minRow.surface||''}</div></div>
+    <div class="kpi"><div class="kpi-label">Sans rupture</div><div class="kpi-val">${noRupture}</div><div class="kpi-sub">sur ${tested.length} conditions</div></div>
+    <div class="kpi"><div class="kpi-label">Limite appareil</div><div class="kpi-val">1100 N</div><div class="kpi-sub">max dynamomètre</div></div>
+  `;
+}
+
+let chartBar,chartCV,chartCompare,chartIC;
+
+function buildBarChart(data){
+  const d=data.filter(r=>r.moy!==null);
+  const labels=d.map(r=>`${r.colle} ${r.surface[0]}/${r.degraissage==="Dégraissé"?"D":"N"}`);
+  const vals=d.map(r=>r.moy);
+  const bg=d.map(r=>r.moy>=1100?'#639922':COLORS[r.colle]+'bb');
+  if(chartBar) chartBar.destroy();
+  chartBar=new Chart(document.getElementById('chartBar'),{type:'bar',data:{labels,datasets:[{label:'Force moy. (N)',data:vals,backgroundColor:bg,borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} N`}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,max:1200,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+}
+
+function buildCVChart(data){
+  const d=data.filter(r=>r.cv!==null&&r.v.length===3);
+  const labels=d.map(r=>`${r.colle} ${r.surface[0]}/${r.degraissage==="Dégraissé"?"D":"N"}`);
+  const vals=d.map(r=>r.cv);
+  const bg=d.map(r=>r.cv>20?'#E24B4A':r.cv>10?'#BA7517':'#1D9E75');
+  if(chartCV) chartCV.destroy();
+  chartCV=new Chart(document.getElementById('chartCV'),{type:'bar',data:{labels,datasets:[{label:'C.V. (%)',data:vals,backgroundColor:bg,borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y}%`}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,ticks:{font:{size:11},callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+}
+
+function buildCompareChart(){
+  const colles=[...new Set(RAW.map(r=>r.colle))];
+  const datasets=[
+    {label:'Non-dégraissé · Brute',bg:'#378ADD',data:colles.map(c=>{const r=RAW.find(x=>x.colle===c&&x.degraissage==="Non-dégraissé"&&x.surface==="Brute");return r&&r.moy!==null?r.moy:null;})},
+    {label:'Non-dégraissé · Peinte',bg:'#85B7EB',data:colles.map(c=>{const r=RAW.find(x=>x.colle===c&&x.degraissage==="Non-dégraissé"&&x.surface==="Peinte");return r&&r.moy!==null?r.moy:null;})},
+    {label:'Dégraissé · Brute',bg:'#1D9E75',data:colles.map(c=>{const r=RAW.find(x=>x.colle===c&&x.degraissage==="Dégraissé"&&x.surface==="Brute");return r&&r.moy!==null?r.moy:null;})},
+    {label:'Dégraissé · Peinte',bg:'#9FE1CB',data:colles.map(c=>{const r=RAW.find(x=>x.colle===c&&x.degraissage==="Dégraissé"&&x.surface==="Peinte");return r&&r.moy!==null?r.moy:null;})},
+  ];
+  document.getElementById('legendCompare').innerHTML=datasets.map(d=>`<span><span class="legend-dot" style="background:${d.bg}"></span>${d.label}</span>`).join('');
+  if(chartCompare) chartCompare.destroy();
+  chartCompare=new Chart(document.getElementById('chartCompare'),{type:'bar',data:{labels:colles,datasets:datasets.map(d=>({label:d.label,data:d.data,backgroundColor:d.bg,borderWidth:0,borderRadius:2}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{min:0,max:1200,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+}
+
+function buildICChart(data){
+  const d=data.filter(r=>r.delta&&r.delta>0&&r.v.length===3);
+  const labels=d.map(r=>`${r.colle} ${r.surface[0]}/${r.degraissage==="Dégraissé"?"D":"N"}`);
+  const moys=d.map(r=>r.moy);
+  if(chartIC) chartIC.destroy();
+  chartIC=new Chart(document.getElementById('chartIC'),{type:'bar',data:{labels,datasets:[{label:'Moyenne (N)',data:moys,backgroundColor:d.map(r=>COLORS[r.colle]+'99'),borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const row=d[c.dataIndex];return[`Moy: ${row.moy} N`,`σ: ${row.sigma}`,`IC 95%: ${row.ic}`];}}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+}
+
+function buildTable(data){
+  const thead=document.querySelector('#mainTable thead');
+  const tbody=document.querySelector('#mainTable tbody');
+  thead.innerHTML=`<tr><th>Colle</th><th>Type</th><th>Dégraissage</th><th>Surface</th><th>N</th><th>x̄ (N)</th><th>σ</th><th>C.V.</th><th>I.C. (95%)</th><th>Rupture</th></tr>`;
+  tbody.innerHTML=data.map(r=>`<tr>
+    <td style="font-weight:500;">${r.colle}</td>
+    <td>${r.type}</td>
+    <td>${r.degraissage}</td>
+    <td>${r.surface}</td>
+    <td style="color:var(--text-secondary);">${r.v.length||'—'}</td>
+    <td style="font-weight:500;">${r.moy!==null?r.moy.toFixed(1):'—'}</td>
+    <td>${r.sigma!==null?r.sigma.toFixed(1):'—'}</td>
+    <td>${r.cv!==null?r.cv+'%':'—'}</td>
+    <td style="font-size:11px;">${r.ic}</td>
+    <td><span class="badge ${getRuptureClass(r.rupture)}">${r.rupture}</span></td>
+  </tr>`).join('');
+}
+
+function refresh(){
+  const data=filtered();
+  buildKPIs(data);
+  buildBarChart(data);
+  buildCVChart(data);
+  buildTable(data);
+}
+
+const colleSet=[...new Set(RAW.map(r=>r.colle))];
+const sel=document.getElementById('filterColle');
+colleSet.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+['filterColle','filterSurface','filterDegraissage'].forEach(id=>document.getElementById(id).addEventListener('change',refresh));
+
+buildCompareChart();
+buildICChart(RAW);
+refresh();
+</script>
+</body>
+</html>
