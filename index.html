@@ -107,7 +107,7 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="chart-box">
       <h3>Schéma de l'éprouvette</h3>
       <div class="img-container">
-        <img src="./eprouvette.png" alt="Schéma de l'éprouvette de test">
+        <img src="eprouvette.png" alt="Schéma de l'éprouvette de test">
       </div>
     </div>
   </div>
@@ -185,7 +185,7 @@ function buildBarChart(data){
   const vals=d.map(r=>r.moy);
   const bg=d.map(r=>r.moy>=1100?'#639922':COLORS[r.colle]+'bb');
   if(chartBar) chartBar.destroy();
-  chartBar=new Chart(document.getElementById('chartBar'),{type:'bar',data:{labels,datasets:[{label:'Force moy. (N)',data:vals,backgroundColor:bg,borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} N`}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,max:1200,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+  chartBar=new Chart(document.getElementById('chartBar'),{type:'bar',data:{labels,datasets:[{label:'Poids moy. (kg)',data:vals,backgroundColor:bg,borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} kg`}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,max:1200,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
 }
 
 function buildCVChart(data){
@@ -215,7 +215,7 @@ function buildICChart(data){
   const labels=d.map(r=>`${r.colle} ${r.surface[0]}/${r.degraissage==="Dégraissé"?"D":"N"}`);
   const moys=d.map(r=>r.moy);
   if(chartIC) chartIC.destroy();
-  chartIC=new Chart(document.getElementById('chartIC'),{type:'bar',data:{labels,datasets:[{label:'Moyenne (N)',data:moys,backgroundColor:d.map(r=>COLORS[r.colle]+'99'),borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const row=d[c.dataIndex];return[`Moy: ${row.moy} N`,`σ: ${row.sigma}`,`IC 95%: ${row.ic}`];}}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+  chartIC=new Chart(document.getElementById('chartIC'),{type:'bar',data:{labels,datasets:[{label:'Moyenne (kg)',data:moys,backgroundColor:d.map(r=>COLORS[r.colle]+'99'),borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const row=d[c.dataIndex];return[`Moy: ${row.moy} kg`,`σ: ${row.sigma}`,`IC 95%: ${row.ic}`];}}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
 }
 
 function buildTable(data){
