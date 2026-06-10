@@ -3,123 +3,624 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Tests d'arrachement colles</title>
+<title>Tests d'arrachement — Assemblages collés</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 :root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f3;
-  --text-primary: #1a1a1a;
-  --text-secondary: #6b6b68;
-  --border: rgba(0,0,0,0.12);
-  --border-md: rgba(0,0,0,0.22);
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --bg-0: #0D0F14;
+  --bg-1: #141720;
+  --bg-2: #1A1E2A;
+  --bg-3: #222638;
+  --border: rgba(255,255,255,0.07);
+  --border-md: rgba(255,255,255,0.13);
+  --text-0: #E8EAF0;
+  --text-1: #A0A6BE;
+  --text-2: #636880;
+  --accent: #00D4AA;
+  --accent-dim: rgba(0,212,170,0.12);
+  --accent-glow: rgba(0,212,170,0.3);
+  --red: #FF5A5A;
+  --amber: #F5A623;
+  --green: #00D4AA;
+  --blue: #5A9FFF;
+  --purple: #9B8AFF;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+  --radius: 10px;
+  --radius-sm: 6px;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: #1c1c1c;
-    --bg-secondary: #252525;
-    --text-primary: #f0f0ee;
-    --text-secondary: #999994;
-    --border: rgba(255,255,255,0.1);
-    --border-md: rgba(255,255,255,0.2);
-  }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-0);
+  color: var(--text-0);
+  min-height: 100vh;
+  line-height: 1.5;
 }
-body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg-secondary); color: var(--text-primary); min-height: 100vh; padding: 2rem 1rem; }
-.dash { max-width: 900px; margin: 0 auto; }
-h1.title { font-size: 20px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
-p.sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.5rem; }
 
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
-.kpi { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; }
-.kpi-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
-.kpi-val { font-size: 22px; font-weight: 500; color: var(--text-primary); }
-.kpi-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-.section-title { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin: 1.5rem 0 10px; border-bottom: 0.5px solid var(--border); padding-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
-.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+/* ── Layout ── */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
 
-@media (max-width: 600px) { .charts-row { grid-template-columns: 1fr; } }
-.chart-box { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
-.chart-box h3, .chart-full h3 { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .04em; }
-.chart-full { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 14px; }
-.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; font-size: 12px; color: var(--text-secondary); }
-.legend span { display: flex; align-items: center; gap: 5px; }
-.legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-.filters { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
-.filters select { font-size: 13px; padding: 6px 10px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: var(--bg-primary); color: var(--text-primary); cursor: pointer; }
-.table-wrap { overflow-x: auto; }
+.sidebar {
+  width: 220px;
+  background: var(--bg-1);
+  border-right: 1px solid var(--border);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  flex-shrink: 0;
+}
 
-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-thead th { padding: 8px 10px; text-align: left; color: var(--text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--border); white-space: nowrap; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-tbody td { padding: 7px 10px; border-bottom: 0.5px solid var(--border); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-brand {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-brand .brand-tag {
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.sidebar-brand .brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-0);
+  line-height: 1.3;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-1);
+  transition: all 0.15s;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.nav-item:hover {
+  background: var(--bg-2);
+  color: var(--text-0);
+}
+
+.nav-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: rgba(0,212,170,0.2);
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+.sidebar-section {
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+  text-transform: uppercase;
+  padding: 12px 12px 4px;
+}
+
+.main {
+  flex: 1;
+  padding: 36px 40px;
+  overflow: auto;
+  max-width: 1100px;
+}
+
+/* ── Header ── */
+.page-header {
+  margin-bottom: 36px;
+}
+
+.page-eyebrow {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-eyebrow::before {
+  content: '';
+  width: 20px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-0);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.page-sub {
+  font-size: 13px;
+  color: var(--text-1);
+  line-height: 1.6;
+}
+
+/* ── KPIs ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.kpi-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.kpi-card:hover {
+  border-color: var(--border-md);
+}
+
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: var(--accent);
+  transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+.kpi-card.animated::after {
+  width: var(--gauge-w, 60%);
+}
+
+.kpi-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 10px;
+}
+
+.kpi-val {
+  font-family: var(--font-data);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-0);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.kpi-val .unit {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-2);
+  margin-left: 3px;
+}
+
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+/* ── Filters ── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  padding: 14px 16px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 11px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 500;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.filter-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+select {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  padding: 6px 28px 6px 10px;
+  background: var(--bg-2);
+  color: var(--text-0);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23636880'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+select:focus {
+  border-color: var(--accent);
+}
+
+/* ── Section headers ── */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  margin-top: 36px;
+}
+
+.section-head:first-of-type {
+  margin-top: 0;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Chart containers ── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.chart-box, .chart-full {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.chart-full {
+  margin-bottom: 14px;
+}
+
+.chart-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 14px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-1);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Specimen box ── */
+.specimen-box {
+  background: var(--bg-2);
+  border-radius: var(--radius-sm);
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.specimen-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  opacity: 0.85;
+}
+
+/* ── Table ── */
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+thead th {
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--text-2);
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-md);
+  white-space: nowrap;
+  background: var(--bg-2);
+}
+
+thead th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+thead th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+
+tbody td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-0);
+  white-space: nowrap;
+}
+
 tbody tr:last-child td { border-bottom: none; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-.badge-ok { background: #EAF3DE; color: #3B6D11; }
-.badge-cohesif { background: #EEEDFE; color: #3C3489; }
-.badge-adhesif { background: #FAEEDA; color: #854F0B; }
-.badge-mixte { background: #FAECE7; color: #993C1D; }
-.badge-nd { background: var(--bg-secondary); color: var(--text-secondary); }
 
-/* Nouveau style pour l'image */
-.img-container { display: flex; align-items: center; justify-content: center; height: 200px; overflow: hidden; }
-.img-container img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
+tbody tr:hover td {
+  background: var(--bg-2);
+}
+
+.td-colle {
+  font-weight: 500;
+  color: var(--text-0);
+}
+
+.td-val {
+  font-family: var(--font-data);
+  font-size: 12px;
+}
+
+.td-muted {
+  color: var(--text-2);
+  font-family: var(--font-data);
+  font-size: 11px;
+}
+
+/* ── Rupture badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  border-left: 3px solid;
+  gap: 5px;
+}
+
+.badge-ok      { background: rgba(0,212,170,0.1);  color: #00D4AA; border-color: #00D4AA; }
+.badge-cohesif { background: rgba(90,159,255,0.1); color: #5A9FFF; border-color: #5A9FFF; }
+.badge-adhesif { background: rgba(245,166,35,0.1); color: #F5A623; border-color: #F5A623; }
+.badge-mixte   { background: rgba(255,90,90,0.1);  color: #FF5A5A; border-color: #FF5A5A; }
+.badge-nd      { background: rgba(255,255,255,0.04); color: var(--text-2); border-color: var(--border-md); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 24px 20px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.kpi-card, .chart-box, .chart-full {
+  animation: fadeUp 0.4s ease both;
+}
+
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.10s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.20s; }
+.kpi-card:nth-child(5) { animation-delay: 0.25s; }
+
+/* ── No-rupture highlight ── */
+.row-no-rupture td { color: var(--accent); }
+.row-no-rupture .td-colle { color: var(--accent); }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
 </style>
 </head>
 <body>
-<div class="dash">
-  <h1 class="title">Tests d'arrachement - Assemblages collés aluminium</h1>
-  <p class="sub">Brides alu emboîtées dans tubes alu · surfaces brutes ou peintes · dégraissage ou non</p>
 
-  <div class="kpis" id="kpis"></div>
+<div class="layout">
 
-  <p class="section-title">Filtres</p>
-  <div class="filters">
-    <select id="filterColle"><option value="all">Toutes les colles</option></select>
-    <select id="filterSurface"><option value="all">Toutes surfaces</option><option value="Brute">Brute</option><option value="Peinte">Peinte</option></select>
-    <select id="filterDegraissage"><option value="all">Dégraissage : tous</option><option value="Dégraissé">Dégraissé</option><option value="Non-dégraissé">Non-dégraissé</option></select>
-  </div>
-
-  <p class="section-title">Résultats par condition</p>
-  <div class="charts-row">
-    <div class="chart-box">
-      <h3>Poids moyen par condition (kg)</h3>
-      <div style="position:relative;height:280px;"><canvas id="chartBar" role="img" aria-label="Barres des forces moyennes par condition de collage"></canvas></div>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-tag">Rapport labo</div>
+      <div class="brand-name">Tests d'arrachement<br>Alu collé</div>
     </div>
-    <div class="chart-box">
-      <h3>Coefficient de variation C.V. (%)</h3>
-      <div style="position:relative;height:280px;"><canvas id="chartCV" role="img" aria-label="Coefficient de variation par condition"></canvas></div>
-    </div>
-  </div>
 
-  <div class="chart-full">
-    <h3>Comparaison : Dégraissé vs Non-dégraissé · par colle</h3>
-    <div class="legend" id="legendCompare"></div>
-    <div style="position:relative;height:260px;"><canvas id="chartCompare" role="img" aria-label="Comparaison dégraissé vs non-dégraissé"></canvas></div>
-  </div>
+    <span class="sidebar-section">Navigation</span>
+    <a class="nav-item active" href="#kpis">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h8"/></svg>
+      Vue d'ensemble
+    </a>
+    <a class="nav-item" href="#charts">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 18l4-8 4 4 4-6 4 8"/></svg>
+      Graphiques
+    </a>
+    <a class="nav-item" href="#table">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Tableau récap.
+    </a>
 
-  <div class="charts-row">
-    <div class="chart-box">
-      <h3>Intervalles de confiance (95%)</h3>
-      <div style="position:relative;height:200px;"><canvas id="chartIC" role="img" aria-label="Intervalles de confiance 95% des forces mesurées"></canvas></div>
+    <span class="sidebar-section" style="margin-top:auto;">Protocole</span>
+    <div style="font-size:11px; color:var(--text-2); padding:0 12px 4px; line-height:1.7;">
+      Bride alu ⊂ tube alu<br>
+      Surface brute / peinte<br>
+      Dégraissé / non-dégraissé<br>
+      <span style="color:var(--text-2); font-family:var(--font-data);">Lim. appareil : 1100 kg</span>
     </div>
-    <div class="chart-box">
-      <h3>Schéma de l'éprouvette</h3>
-      <div class="img-container">
-        <img src="eprouvette.png" alt="Schéma de l'éprouvette de test">
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <div class="page-header" id="kpis">
+      <div class="page-eyebrow">Collage structural aluminium</div>
+      <h1 class="page-title">Tests d'arrachement — Assemblages collés</h1>
+      <p class="page-sub">Brides alu emboîtées dans tubes alu · surfaces brutes ou peintes · dégraissage ou non</p>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <span class="filter-label">Filtrer</span>
+      <div class="filter-sep"></div>
+      <select id="filterColle"><option value="all">Toutes les colles</option></select>
+      <select id="filterSurface">
+        <option value="all">Toutes surfaces</option>
+        <option value="Brute">Brute</option>
+        <option value="Peinte">Peinte</option>
+      </select>
+      <select id="filterDegraissage">
+        <option value="all">Tous dégraissages</option>
+        <option value="Dégraissé">Dégraissé</option>
+        <option value="Non-dégraissé">Non-dégraissé</option>
+      </select>
+    </div>
+
+    <!-- Charts -->
+    <div id="charts">
+      <div class="section-head">
+        <span class="section-title">Résultats par condition</span>
+        <span class="section-line"></span>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-box">
+          <div class="chart-title">Poids moyen par condition (kg)</div>
+          <div style="position:relative;height:280px;"><canvas id="chartBar"></canvas></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-title">Coefficient de variation C.V. (%)</div>
+          <div style="position:relative;height:280px;"><canvas id="chartCV"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-full">
+        <div class="chart-title">Comparaison dégraissé vs non-dégraissé · par colle</div>
+        <div class="legend" id="legendCompare"></div>
+        <div style="position:relative;height:260px;"><canvas id="chartCompare"></canvas></div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-box">
+          <div class="chart-title">Intervalles de confiance (95%)</div>
+          <div style="position:relative;height:200px;"><canvas id="chartIC"></canvas></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-title">Schéma de l'éprouvette</div>
+          <div class="specimen-box">
+            <img src="eprouvette.png" alt="Schéma de l'éprouvette">
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <p class="section-title">Tableau récapitulatif</p>
-  <div class="chart-box">
-    <div class="table-wrap"><table id="mainTable"><thead></thead><tbody></tbody></table></div>
-  </div>
+    <!-- Table -->
+    <div id="table">
+      <div class="section-head" style="margin-top:40px;">
+        <span class="section-title">Tableau récapitulatif</span>
+        <span class="section-line"></span>
+      </div>
+      <div class="chart-box" style="padding:0; overflow:hidden;">
+        <div class="table-wrap">
+          <table id="mainTable">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
 </div>
 
 <script>
-/* Le reste de votre script JavaScript demeure inchangé */
 const RAW = [
   {colle:"3M 8507NS",type:"Acrylique",degraissage:"Non-dégraissé",surface:"Brute",v:[1100,1100,1100],moy:1100,sigma:null,cv:null,delta:null,ic:"—",rupture:"Pas de rupture"},
   {colle:"3M 8507NS",type:"Acrylique",degraissage:"Non-dégraissé",surface:"Peinte",v:[1100,1100,1100],moy:1100,sigma:null,cv:null,delta:null,ic:"—",rupture:"Pas de rupture"},
@@ -144,110 +645,204 @@ const RAW = [
 ];
 
 const COLORS = {
-  "3M 8507NS":"#378ADD","3M DP8410NS":"#1D9E75","SikaFast 555":"#7F77DD","3M 7260":"#D85A30","3M DP420":"#BA7517"
+  "3M 8507NS":   "#00D4AA",
+  "3M DP8410NS": "#5A9FFF",
+  "SikaFast 555":"#9B8AFF",
+  "3M 7260":     "#F5A623",
+  "3M DP420":    "#FF5A5A"
 };
 
-function getRuptureClass(r){
-  if(r==="Pas de rupture") return "badge-ok";
-  if(r==="Cohésif") return "badge-cohesif";
-  if(r==="Adhésif") return "badge-adhesif";
-  if(r==="Mixte") return "badge-mixte";
+// Chart.js global defaults
+Chart.defaults.color = '#636880';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 10;
+
+function getRuptureClass(r) {
+  if (r === "Pas de rupture") return "badge-ok";
+  if (r === "Cohésif") return "badge-cohesif";
+  if (r === "Adhésif") return "badge-adhesif";
+  if (r === "Mixte") return "badge-mixte";
   return "badge-nd";
 }
 
-function filtered(){
-  const c=document.getElementById('filterColle').value;
-  const s=document.getElementById('filterSurface').value;
-  const d=document.getElementById('filterDegraissage').value;
-  return RAW.filter(r=>(c==='all'||r.colle===c)&&(s==='all'||r.surface===s)&&(d==='all'||r.degraissage===d));
+function filtered() {
+  const c = document.getElementById('filterColle').value;
+  const s = document.getElementById('filterSurface').value;
+  const d = document.getElementById('filterDegraissage').value;
+  return RAW.filter(r =>
+    (c === 'all' || r.colle === c) &&
+    (s === 'all' || r.surface === s) &&
+    (d === 'all' || r.degraissage === d)
+  );
 }
 
-function buildKPIs(data){
-  const tested=data.filter(r=>r.moy!==null);
-  const completed=data.filter(r=>r.moy!==null&&r.v.length===3);
-  const noRupture=tested.filter(r=>r.rupture==="Pas de rupture").length;
-  const maxRow=tested.reduce((a,b)=>(b.moy>a.moy?b:a),{moy:0,colle:"—"});
-  const minRow=tested.filter(r=>r.moy>0&&r.moy<1100).reduce((a,b)=>(b.moy<a.moy?b:a),{moy:9999,colle:"—"});
-  document.getElementById('kpis').innerHTML=`
-    <div class="kpi"><div class="kpi-label">Conditions testées</div><div class="kpi-val">${tested.length} / ${RAW.length}</div><div class="kpi-sub">complètes : ${completed.length}</div></div>
-    <div class="kpi"><div class="kpi-label">Max poids (kg)</div><div class="kpi-val">${maxRow.moy===0?'—':maxRow.moy}</div><div class="kpi-sub">${maxRow.colle}</div></div>
-    <div class="kpi"><div class="kpi-label">Min poids mesurée (kg)</div><div class="kpi-val">${minRow.moy===9999?'—':minRow.moy.toFixed(1)}</div><div class="kpi-sub">${minRow.colle} · ${minRow.surface||''}</div></div>
-    <div class="kpi"><div class="kpi-label">Sans rupture</div><div class="kpi-val">${noRupture}</div><div class="kpi-sub">sur ${tested.length} conditions</div></div>
-    <div class="kpi"><div class="kpi-label">Limite appareil (kg)</div><div class="kpi-val">1100</div><div class="kpi-sub">max chariot</div></div>
-  `;
-}
+function buildKPIs(data) {
+  const tested = data.filter(r => r.moy !== null);
+  const noRupture = tested.filter(r => r.rupture === "Pas de rupture").length;
+  const measurable = tested.filter(r => r.moy < 1100);
+  const maxRow = tested.reduce((a, b) => (b.moy > a.moy ? b : a), {moy: 0, colle: "—"});
+  const minRow = measurable.length ? measurable.reduce((a, b) => (b.moy < a.moy ? b : a), {moy: 9999, colle: "—"}) : {moy: null, colle: "—"};
+  const avgMeasurable = measurable.length ? (measurable.reduce((s, r) => s + r.moy, 0) / measurable.length) : null;
 
-let chartBar,chartCV,chartCompare,chartIC;
-
-function buildBarChart(data){
-  const d=data.filter(r=>r.moy!==null);
-  const labels=d.map(r=>`${r.colle} ${r.surface[0]}/${r.degraissage==="Dégraissé"?"D":"N"}`);
-  const vals=d.map(r=>r.moy);
-  const bg=d.map(r=>r.moy>=1100?'#639922':COLORS[r.colle]+'bb');
-  if(chartBar) chartBar.destroy();
-  chartBar=new Chart(document.getElementById('chartBar'),{type:'bar',data:{labels,datasets:[{label:'Poids moy. (kg)',data:vals,backgroundColor:bg,borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} kg`}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,max:1200,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
-}
-
-function buildCVChart(data){
-  const d=data.filter(r=>r.cv!==null&&r.v.length===3);
-  const labels=d.map(r=>`${r.colle} ${r.surface[0]}/${r.degraissage==="Dégraissé"?"D":"N"}`);
-  const vals=d.map(r=>r.cv);
-  const bg=d.map(r=>r.cv>20?'#E24B4A':r.cv>10?'#BA7517':'#1D9E75');
-  if(chartCV) chartCV.destroy();
-  chartCV=new Chart(document.getElementById('chartCV'),{type:'bar',data:{labels,datasets:[{label:'C.V. (%)',data:vals,backgroundColor:bg,borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y}%`}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,ticks:{font:{size:11},callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
-}
-
-function buildCompareChart(){
-  const colles=[...new Set(RAW.map(r=>r.colle))];
-  const datasets=[
-    {label:'Non-dégraissé · Brute',bg:'#378ADD',data:colles.map(c=>{const r=RAW.find(x=>x.colle===c&&x.degraissage==="Non-dégraissé"&&x.surface==="Brute");return r&&r.moy!==null?r.moy:null;})},
-    {label:'Non-dégraissé · Peinte',bg:'#85B7EB',data:colles.map(c=>{const r=RAW.find(x=>x.colle===c&&x.degraissage==="Non-dégraissé"&&x.surface==="Peinte");return r&&r.moy!==null?r.moy:null;})},
-    {label:'Dégraissé · Brute',bg:'#1D9E75',data:colles.map(c=>{const r=RAW.find(x=>x.colle===c&&x.degraissage==="Dégraissé"&&x.surface==="Brute");return r&&r.moy!==null?r.moy:null;})},
-    {label:'Dégraissé · Peinte',bg:'#9FE1CB',data:colles.map(c=>{const r=RAW.find(x=>x.colle===c&&x.degraissage==="Dégraissé"&&x.surface==="Peinte");return r&&r.moy!==null?r.moy:null;})},
+  const kpis = [
+    { label: "Conditions testées", val: `${tested.length}`, unit: `/ ${RAW.length}`, sub: `complètes : ${data.filter(r=>r.v.length===3).length}`, gauge: tested.length / RAW.length },
+    { label: "Max poids", val: maxRow.moy === 0 ? "—" : maxRow.moy, unit: "kg", sub: maxRow.colle, gauge: maxRow.moy / 1100 },
+    { label: "Min mesurée", val: minRow.moy === null ? "—" : minRow.moy === 9999 ? "—" : minRow.moy.toFixed(0), unit: minRow.moy && minRow.moy !== 9999 ? "kg" : "", sub: minRow.colle, gauge: minRow.moy && minRow.moy !== 9999 ? minRow.moy / 1100 : 0.1 },
+    { label: "Sans rupture", val: noRupture, unit: "", sub: `sur ${tested.length} conditions`, gauge: noRupture / Math.max(tested.length, 1) },
+    { label: "Limite appareil", val: "1100", unit: "kg", sub: "max chariot", gauge: 1.0 },
   ];
-  document.getElementById('legendCompare').innerHTML=datasets.map(d=>`<span><span class="legend-dot" style="background:${d.bg}"></span>${d.label}</span>`).join('');
-  if(chartCompare) chartCompare.destroy();
-  chartCompare=new Chart(document.getElementById('chartCompare'),{type:'bar',data:{labels:colles,datasets:datasets.map(d=>({label:d.label,data:d.data,backgroundColor:d.bg,borderWidth:0,borderRadius:2}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{min:0,max:1200,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = kpis.map((k, i) => `
+    <div class="kpi-card" style="--gauge-w:${Math.max(6, k.gauge * 100)}%;animation-delay:${0.05 + i * 0.05}s">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val">${k.val}${k.unit ? `<span class="unit">${k.unit}</span>` : ''}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>
+  `).join('');
+
+  // trigger gauge animations
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.kpi-card').forEach(c => c.classList.add('animated'));
+    });
+  });
 }
 
-function buildICChart(data){
-  const d=data.filter(r=>r.delta&&r.delta>0&&r.v.length===3);
-  const labels=d.map(r=>`${r.colle} ${r.surface[0]}/${r.degraissage==="Dégraissé"?"D":"N"}`);
-  const moys=d.map(r=>r.moy);
-  if(chartIC) chartIC.destroy();
-  chartIC=new Chart(document.getElementById('chartIC'),{type:'bar',data:{labels,datasets:[{label:'Moyenne (kg)',data:moys,backgroundColor:d.map(r=>COLORS[r.colle]+'99'),borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const row=d[c.dataIndex];return[`Moy: ${row.moy} kg`,`σ: ${row.sigma}`,`IC 95%: ${row.ic}`];}}}},scales:{x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},y:{min:0,ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+let chartBar, chartCV, chartCompare, chartIC;
+
+const gridColor = 'rgba(255,255,255,0.05)';
+const tickColor = '#636880';
+
+function buildBarChart(data) {
+  const d = data.filter(r => r.moy !== null);
+  const labels = d.map(r => `${r.colle.replace('3M ', '')} ${r.surface[0]}/${r.degraissage === "Dégraissé" ? "D" : "N"}`);
+  const vals = d.map(r => r.moy);
+  const bg = d.map(r => r.moy >= 1100 ? '#00D4AA' : COLORS[r.colle] + 'cc');
+  if (chartBar) chartBar.destroy();
+  chartBar = new Chart(document.getElementById('chartBar'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: vals, backgroundColor: bg, borderWidth: 0, borderRadius: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.y} kg` }, backgroundColor: '#1A1E2A', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, titleColor: '#A0A6BE', bodyColor: '#E8EAF0', padding: 10 } },
+      scales: {
+        x: { ticks: { maxRotation: 45, color: tickColor }, grid: { display: false }, border: { color: 'transparent' } },
+        y: { min: 0, max: 1200, ticks: { color: tickColor, callback: v => v + ' kg' }, grid: { color: gridColor }, border: { color: 'transparent' } }
+      }
+    }
+  });
 }
 
-function buildTable(data){
-  const thead=document.querySelector('#mainTable thead');
-  const tbody=document.querySelector('#mainTable tbody');
-  thead.innerHTML=`<tr><th>Colle</th><th>Type</th><th>Dégraissage</th><th>Surface</th><th>N</th><th>x̄ (N)</th><th>σ</th><th>C.V.</th><th>I.C. (95%)</th><th>Rupture</th></tr>`;
-  tbody.innerHTML=data.map(r=>`<tr>
-    <td style="font-weight:500;">${r.colle}</td>
-    <td>${r.type}</td>
-    <td>${r.degraissage}</td>
-    <td>${r.surface}</td>
-    <td style="color:var(--text-secondary);">${r.v.length||'—'}</td>
-    <td style="font-weight:500;">${r.moy!==null?r.moy.toFixed(1):'—'}</td>
-    <td>${r.sigma!==null?r.sigma.toFixed(1):'—'}</td>
-    <td>${r.cv!==null?r.cv+'%':'—'}</td>
-    <td style="font-size:11px;">${r.ic}</td>
+function buildCVChart(data) {
+  const d = data.filter(r => r.cv !== null && r.v.length === 3);
+  const labels = d.map(r => `${r.colle.replace('3M ', '')} ${r.surface[0]}/${r.degraissage === "Dégraissé" ? "D" : "N"}`);
+  const vals = d.map(r => r.cv);
+  const bg = d.map(r => r.cv > 20 ? '#FF5A5A' : r.cv > 10 ? '#F5A623' : '#00D4AA');
+  if (chartCV) chartCV.destroy();
+  chartCV = new Chart(document.getElementById('chartCV'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: vals, backgroundColor: bg, borderWidth: 0, borderRadius: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.y}%` }, backgroundColor: '#1A1E2A', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, titleColor: '#A0A6BE', bodyColor: '#E8EAF0', padding: 10 } },
+      scales: {
+        x: { ticks: { maxRotation: 45, color: tickColor }, grid: { display: false }, border: { color: 'transparent' } },
+        y: { min: 0, ticks: { color: tickColor, callback: v => v + '%' }, grid: { color: gridColor }, border: { color: 'transparent' } }
+      }
+    }
+  });
+}
+
+function buildCompareChart() {
+  const colles = [...new Set(RAW.map(r => r.colle))];
+  const datasets = [
+    { label: 'Non-dégraissé · Brute',  bg: '#00D4AA',   data: colles.map(c => { const r = RAW.find(x => x.colle===c && x.degraissage==="Non-dégraissé" && x.surface==="Brute"); return r && r.moy!==null ? r.moy : null; }) },
+    { label: 'Non-dégraissé · Peinte', bg: '#00D4AA55', data: colles.map(c => { const r = RAW.find(x => x.colle===c && x.degraissage==="Non-dégraissé" && x.surface==="Peinte"); return r && r.moy!==null ? r.moy : null; }) },
+    { label: 'Dégraissé · Brute',      bg: '#5A9FFF',   data: colles.map(c => { const r = RAW.find(x => x.colle===c && x.degraissage==="Dégraissé" && x.surface==="Brute"); return r && r.moy!==null ? r.moy : null; }) },
+    { label: 'Dégraissé · Peinte',     bg: '#5A9FFF55', data: colles.map(c => { const r = RAW.find(x => x.colle===c && x.degraissage==="Dégraissé" && x.surface==="Peinte"); return r && r.moy!==null ? r.moy : null; }) },
+  ];
+  document.getElementById('legendCompare').innerHTML = datasets.map(d =>
+    `<div class="legend-item"><span class="legend-dot" style="background:${d.bg}"></span>${d.label}</div>`
+  ).join('');
+  if (chartCompare) chartCompare.destroy();
+  chartCompare = new Chart(document.getElementById('chartCompare'), {
+    type: 'bar',
+    data: { labels: colles, datasets: datasets.map(d => ({ label: d.label, data: d.data, backgroundColor: d.bg, borderWidth: 0, borderRadius: 3 })) },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1A1E2A', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, titleColor: '#A0A6BE', bodyColor: '#E8EAF0', padding: 10 } },
+      scales: {
+        x: { ticks: { color: tickColor }, grid: { display: false }, border: { color: 'transparent' } },
+        y: { min: 0, max: 1200, ticks: { color: tickColor, callback: v => v + ' kg' }, grid: { color: gridColor }, border: { color: 'transparent' } }
+      }
+    }
+  });
+}
+
+function buildICChart(data) {
+  const d = data.filter(r => r.delta && r.delta > 0 && r.v.length === 3);
+  const labels = d.map(r => `${r.colle.replace('3M ', '')} ${r.surface[0]}/${r.degraissage === "Dégraissé" ? "D" : "N"}`);
+  const moys = d.map(r => r.moy);
+  if (chartIC) chartIC.destroy();
+  chartIC = new Chart(document.getElementById('chartIC'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: moys, backgroundColor: d.map(r => COLORS[r.colle] + '99'), borderWidth: 0, borderRadius: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => { const row = d[c.dataIndex]; return [`Moy: ${row.moy} kg`, `σ: ${row.sigma}`, `IC 95%: ${row.ic}`]; } }, backgroundColor: '#1A1E2A', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, titleColor: '#A0A6BE', bodyColor: '#E8EAF0', padding: 10 }
+      },
+      scales: {
+        x: { ticks: { maxRotation: 45, color: tickColor }, grid: { display: false }, border: { color: 'transparent' } },
+        y: { min: 0, ticks: { color: tickColor, callback: v => v + ' kg' }, grid: { color: gridColor }, border: { color: 'transparent' } }
+      }
+    }
+  });
+}
+
+function buildTable(data) {
+  const thead = document.querySelector('#mainTable thead');
+  const tbody = document.querySelector('#mainTable tbody');
+  thead.innerHTML = `<tr>
+    <th>Colle</th><th>Type</th><th>Dégr.</th><th>Surface</th>
+    <th>N</th><th>x̄ (kg)</th><th>σ</th><th>C.V.</th><th>I.C. 95%</th><th>Rupture</th>
+  </tr>`;
+  tbody.innerHTML = data.map(r => `<tr class="${r.rupture === 'Pas de rupture' ? 'row-no-rupture' : ''}">
+    <td class="td-colle">${r.colle}</td>
+    <td style="color:var(--text-1)">${r.type}</td>
+    <td class="td-muted">${r.degraissage === "Dégraissé" ? "Dégraissé" : "Non-dégr."}</td>
+    <td style="color:var(--text-1)">${r.surface}</td>
+    <td class="td-muted">${r.v.length || '—'}</td>
+    <td class="td-val" style="font-weight:600;">${r.moy !== null ? r.moy.toFixed(1) : '—'}</td>
+    <td class="td-muted">${r.sigma !== null ? r.sigma.toFixed(1) : '—'}</td>
+    <td class="td-muted">${r.cv !== null ? r.cv + '%' : '—'}</td>
+    <td class="td-muted" style="font-size:10px;">${r.ic}</td>
     <td><span class="badge ${getRuptureClass(r.rupture)}">${r.rupture}</span></td>
   </tr>`).join('');
 }
 
-function refresh(){
-  const data=filtered();
+function refresh() {
+  const data = filtered();
   buildKPIs(data);
   buildBarChart(data);
   buildCVChart(data);
   buildTable(data);
 }
 
-const colleSet=[...new Set(RAW.map(r=>r.colle))];
-const sel=document.getElementById('filterColle');
-colleSet.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
-['filterColle','filterSurface','filterDegraissage'].forEach(id=>document.getElementById(id).addEventListener('change',refresh));
+// Populate colle filter
+const colleSet = [...new Set(RAW.map(r => r.colle))];
+const sel = document.getElementById('filterColle');
+colleSet.forEach(c => {
+  const o = document.createElement('option');
+  o.value = c; o.textContent = c;
+  sel.appendChild(o);
+});
+
+['filterColle', 'filterSurface', 'filterDegraissage'].forEach(id =>
+  document.getElementById(id).addEventListener('change', refresh)
+);
 
 buildCompareChart();
 buildICChart(RAW);
